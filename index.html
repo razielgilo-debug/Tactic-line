@@ -103,6 +103,21 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 .entry-num { font-size: 20px; font-weight: 900; margin-left: 10px; margin-right: 6px; opacity: .2; flex-shrink: 0; padding-top: 2px; }
 .delete-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 17px; padding: 4px 6px; border-radius: 6px; opacity: .45; transition: opacity .15s; flex-shrink: 0; }
 .delete-btn:hover { opacity: 1; }
+.edit-btn { background: none; border: none; color: #6366f1; cursor: pointer; font-size: 17px; padding: 4px 6px; border-radius: 6px; opacity: .55; transition: opacity .15s; flex-shrink: 0; }
+.edit-btn:hover { opacity: 1; }
+.item-actions { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; }
+
+/* ===== EDIT MODAL ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(30,27,75,0.45); z-index: 500; display: flex; align-items: flex-end; justify-content: center; animation: fadeIn .18s ease; }
+.modal-overlay.hidden { display: none; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.modal-box { background: var(--surface); border-radius: 22px 22px 0 0; padding: 22px 20px 36px; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; animation: slideUp .22s ease; box-shadow: 0 -8px 40px rgba(99,102,241,0.18); }
+@keyframes slideUp { from { transform: translateY(60px); opacity:0; } to { transform: none; opacity:1; } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+.modal-title { font-size: 17px; font-weight: 900; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.modal-save-btn { flex: 2; padding: 13px; border-radius: 12px; border: none; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; transition: all .18s; color: #fff; }
+.modal-cancel-btn { flex: 1; padding: 13px; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-muted); }
 
 /* ===== FAULTS ===== */
 .fault-item { background: var(--surface); border: 2px solid #fde68a; border-radius: var(--radius); padding: 15px; margin-bottom: 12px; animation: slideIn .22s ease; box-shadow: 0 2px 12px rgba(217,119,6,0.08); }
@@ -364,6 +379,36 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
   </div>
 </div>
 
+<!-- ===== EDIT MODAL ===== -->
+<div class="modal-overlay hidden" id="edit-modal" onclick="closeModalOnBg(event)">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">✏️ עריכת רשומה</div>
+
+    <!-- Entry fields (in/out) -->
+    <div id="modal-entry-fields">
+      <div class="form-group"><label>שם המערכת</label><input type="text" id="modal-name" class="cloud-input" placeholder="שם מערכת..."></div>
+      <div class="form-group"><label>תאריך</label><input type="date" id="modal-date" class="cloud-input"></div>
+      <div id="modal-complaint-wrap" class="form-group"><label>תלונה עיקרית</label><textarea id="modal-complaint" class="cloud-input" style="min-height:68px;resize:vertical" placeholder="תלונה עיקרית..."></textarea></div>
+    </div>
+
+    <!-- Fault fields -->
+    <div id="modal-fault-fields" style="display:none">
+      <div class="form-group"><label>שם המערכת</label><input type="text" id="modal-f-sys" class="cloud-input" placeholder="שם מערכת..."></div>
+      <div class="form-group"><label>תאריך</label><input type="date" id="modal-f-date" class="cloud-input"></div>
+      <div class="form-group"><label>תיאור התקלה</label><textarea id="modal-f-fault" class="cloud-input" style="min-height:68px;resize:vertical"></textarea></div>
+      <div class="form-group"><label>גורם התקלה</label><textarea id="modal-f-cause" class="cloud-input" style="min-height:68px;resize:vertical"></textarea></div>
+      <div class="form-group"><label>פתרון התקלה</label><textarea id="modal-f-solution" class="cloud-input" style="min-height:68px;resize:vertical"></textarea></div>
+      <div class="form-group"><label>הערות נוספות</label><textarea id="modal-f-notes" class="cloud-input" style="min-height:68px;resize:vertical"></textarea></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-save-btn" id="modal-save-btn" onclick="saveEdit()">💾 שמור שינויים</button>
+      <button class="modal-cancel-btn" onclick="closeModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== DATA =====
 let db = JSON.parse(localStorage.getItem('expertiza_db') || '{"in":[],"out":[],"faults":[]}');
@@ -610,7 +655,7 @@ function renderList() {
     items.forEach(f=>{
       const el=document.createElement('div'); el.className='fault-item';
       el.innerHTML=`
-        <div class="fault-header"><div><div class="fault-system">🔧 ${f.sys}</div><div class="fault-date">📅 ${formatDate(f.date)}</div></div><button class="delete-btn" onclick="deleteFault(${f.id})">🗑</button></div>
+        <div class="fault-header"><div><div class="fault-system">🔧 ${f.sys}</div><div class="fault-date">📅 ${formatDate(f.date)}</div></div><div class="item-actions"><button class="edit-btn" onclick="openEditFault(${f.id})">✏️</button><button class="delete-btn" onclick="deleteFault(${f.id})">🗑</button></div></div>
         ${f.fault?`<div class="fault-row"><div class="fault-row-label">תיאור התקלה</div><div class="fault-row-val">${f.fault}</div></div>`:''}
         ${f.cause?`<div class="fault-row"><div class="fault-row-label">גורם התקלה</div><div class="fault-row-val">${f.cause}</div></div>`:''}
         ${f.solution?`<div class="fault-row"><div class="fault-row-label">פתרון</div><div class="fault-row-val">${f.solution}</div></div>`:''}
@@ -635,7 +680,7 @@ function renderList() {
         ${e.complaint?`<div class="entry-complaint">💬 ${e.complaint}</div>`:''}
       </div>
       <div class="entry-num">#${i+1}</div>
-      <button class="delete-btn" onclick="deleteEntry('${currentTab}',${e.id})">🗑</button>
+      <div class="item-actions"><button class="edit-btn" onclick="openEditEntry('${currentTab}',${e.id})">✏️</button><button class="delete-btn" onclick="deleteEntry('${currentTab}',${e.id})">🗑</button></div>
     `;
     container.appendChild(el);
   });
@@ -706,6 +751,79 @@ function exportCurrentView(){
     XLSX.utils.book_append_sheet(wb,ws,label);XLSX.writeFile(wb,`${currentTab==='in'?'כניסות':'יציאות'}_${mk}.xlsx`);
   }
 }
+
+// ===== EDIT MODAL =====
+let editContext = null; // { type: 'in'|'out'|'fault', id }
+
+function openEditEntry(tab, id) {
+  const entry = db[tab].find(e => e.id === id);
+  if (!entry) return;
+  editContext = { type: tab, id };
+  document.getElementById('modal-title').textContent = tab === 'in' ? '✏️ עריכת כניסה' : '✏️ עריכת יציאה';
+  document.getElementById('modal-entry-fields').style.display = 'block';
+  document.getElementById('modal-fault-fields').style.display = 'none';
+  document.getElementById('modal-complaint-wrap').style.display = tab === 'in' ? 'block' : 'none';
+  document.getElementById('modal-name').value = entry.name || '';
+  document.getElementById('modal-date').value = entry.date || '';
+  document.getElementById('modal-complaint').value = entry.complaint || '';
+  const btn = document.getElementById('modal-save-btn');
+  btn.style.background = tab === 'in' ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'linear-gradient(135deg,#059669,#047857)';
+  document.getElementById('edit-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function openEditFault(id) {
+  const f = db.faults.find(e => e.id === id);
+  if (!f) return;
+  editContext = { type: 'fault', id };
+  document.getElementById('modal-title').textContent = '✏️ עריכת תקלה';
+  document.getElementById('modal-entry-fields').style.display = 'none';
+  document.getElementById('modal-fault-fields').style.display = 'block';
+  document.getElementById('modal-f-sys').value = f.sys || '';
+  document.getElementById('modal-f-date').value = f.date || '';
+  document.getElementById('modal-f-fault').value = f.fault || '';
+  document.getElementById('modal-f-cause').value = f.cause || '';
+  document.getElementById('modal-f-solution').value = f.solution || '';
+  document.getElementById('modal-f-notes').value = f.notes || '';
+  document.getElementById('modal-save-btn').style.background = 'linear-gradient(135deg,#d97706,#b45309)';
+  document.getElementById('edit-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+  editContext = null;
+}
+
+function closeModalOnBg(e) {
+  if (e.target === document.getElementById('edit-modal')) closeModal();
+}
+
+function saveEdit() {
+  if (!editContext) return;
+  if (editContext.type === 'fault') {
+    const f = db.faults.find(e => e.id === editContext.id);
+    if (!f) return;
+    f.sys      = document.getElementById('modal-f-sys').value.trim();
+    f.date     = document.getElementById('modal-f-date').value;
+    f.fault    = document.getElementById('modal-f-fault').value.trim();
+    f.cause    = document.getElementById('modal-f-cause').value.trim();
+    f.solution = document.getElementById('modal-f-solution').value.trim();
+    f.notes    = document.getElementById('modal-f-notes').value.trim();
+  } else {
+    const entry = db[editContext.type].find(e => e.id === editContext.id);
+    if (!entry) return;
+    entry.name = document.getElementById('modal-name').value.trim();
+    entry.date = document.getElementById('modal-date').value;
+    if (editContext.type === 'in') entry.complaint = document.getElementById('modal-complaint').value.trim();
+  }
+  save();
+  closeModal();
+  renderList();
+}
+
+// ===== EDIT MODAL =====
 
 // Init
 const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
