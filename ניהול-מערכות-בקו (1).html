@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>מערכת ניהול אקספרטיזה</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg: #f0f4ff;
+  --surface: #ffffff;
+  --surface2: #eef2ff;
+  --border: #c7d2fe;
+  --accent-in: #2563eb;
+  --accent-in-light: #dbeafe;
+  --accent-out: #059669;
+  --accent-out-light: #d1fae5;
+  --accent-fault: #d97706;
+  --accent-fault-light: #fef3c7;
+  --text: #1e1b4b;
+  --text-muted: #6b7280;
+  --danger: #dc2626;
+  --radius: 16px;
+  --shadow: 0 2px 16px rgba(99,102,241,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; }
+
+/* ===== SPLASH ===== */
+#splash { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 32px 22px 40px; gap: 14px; background: linear-gradient(160deg, #eef2ff 0%, #f0f9ff 60%, #fef9ee 100%); }
+.splash-logo { width: 82px; height: 82px; background: linear-gradient(135deg, #2563eb, #7c3aed); border-radius: 26px; display: flex; align-items: center; justify-content: center; font-size: 38px; box-shadow: 0 8px 32px rgba(99,102,241,0.30); margin-bottom: 4px; }
+.splash-title { font-size: 24px; font-weight: 900; text-align: center; color: #1e1b4b; }
+.splash-sub { color: var(--text-muted); text-align: center; font-size: 13px; }
+.splash-btns { display: flex; flex-direction: column; gap: 11px; width: 100%; margin-top: 6px; }
+.splash-btn { display: flex; align-items: center; gap: 14px; padding: 15px 18px; border-radius: var(--radius); border: 2px solid transparent; background: var(--surface); cursor: pointer; transition: all .18s; text-align: right; box-shadow: var(--shadow); }
+.splash-btn:active { transform: scale(0.98); }
+.splash-btn .s-icon { font-size: 26px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 13px; flex-shrink: 0; }
+.splash-btn .s-label { font-size: 16px; font-weight: 800; }
+.splash-btn .s-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.btn-in   { border-color: #bfdbfe; } .btn-in .s-icon   { background: #dbeafe; }
+.btn-out  { border-color: #a7f3d0; } .btn-out .s-icon  { background: #d1fae5; }
+.btn-fault{ border-color: #fde68a; } .btn-fault .s-icon{ background: #fef3c7; }
+.btn-rep  { border-color: #ddd6fe; } .btn-rep .s-icon  { background: #ede9fe; }
+.btn-cloud{ border-color: #bae6fd; } .btn-cloud .s-icon{ background: #e0f2fe; }
+.btn-in:hover    { background: #eff6ff; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.15); }
+.btn-out:hover   { background: #f0fdf4; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(5,150,105,0.15); }
+.btn-fault:hover { background: #fffbeb; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(217,119,6,0.15); }
+.btn-rep:hover   { background: #faf5ff; transform: translateY(-2px); }
+.btn-cloud:hover { background: #f0f9ff; transform: translateY(-2px); }
+.cloud-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.cloud-ok  { background: #d1fae5; color: #059669; }
+.cloud-off { background: #fee2e2; color: #dc2626; }
+
+/* ===== HEADER ===== */
+#main { display: none; flex-direction: column; min-height: 100vh; }
+.header { padding: 14px 18px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(99,102,241,0.07); }
+.header-title { font-size: 16px; font-weight: 800; }
+.header-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+.back-btn { background: var(--surface2); border: 1.5px solid var(--border); color: var(--text); padding: 7px 13px; border-radius: 10px; cursor: pointer; font-size: 13px; font-family: 'Heebo', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.back-btn:hover { background: #e0e7ff; }
+.month-nav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 18px; background: var(--surface); border-bottom: 1.5px solid var(--border); }
+.month-btn { background: var(--surface2); border: 1.5px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all .15s; }
+.month-btn:hover { background: #e0e7ff; }
+.month-label { font-size: 15px; font-weight: 800; min-width: 145px; text-align: center; }
+.content { flex: 1; padding: 16px 18px 100px; overflow-y: auto; }
+
+/* ===== FORM ===== */
+.form-card { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+.form-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.form-group { margin-bottom: 13px; }
+.form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.form-group input, .form-group textarea { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Heebo', sans-serif; font-size: 14px; padding: 10px 12px; outline: none; transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; }
+.form-group input:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+.form-group textarea { resize: vertical; min-height: 68px; }
+.submit-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; transition: all .18s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.submit-btn:hover { filter: brightness(1.07); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+
+/* ===== COUNTERS ===== */
+.counter-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.counter-card { flex: 1; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; box-shadow: var(--shadow); }
+.counter-num { font-size: 34px; font-weight: 900; line-height: 1; }
+.counter-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 700; text-transform: uppercase; }
+
+/* ===== LIST ===== */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-header h3 { font-size: 13px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.export-btn { background: var(--surface); border: 1.5px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 9px; cursor: pointer; font-size: 12px; font-family: 'Heebo', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 5px; box-shadow: var(--shadow); }
+.export-btn:hover { background: #e0e7ff; }
+.entry-item { background: var(--surface); border: 2px solid var(--border); border-radius: 13px; padding: 13px 15px; margin-bottom: 10px; display: flex; align-items: flex-start; justify-content: space-between; animation: slideIn .22s ease; box-shadow: var(--shadow); }
+@keyframes slideIn { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: none; } }
+.entry-main { flex: 1; }
+.entry-name { font-size: 15px; font-weight: 800; }
+.entry-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+.entry-complaint { font-size: 12px; color: #6d28d9; margin-top: 5px; background: #ede9fe; border-radius: 7px; padding: 4px 8px; font-weight: 600; display: inline-block; }
+.entry-num { font-size: 20px; font-weight: 900; margin-left: 10px; margin-right: 6px; opacity: .2; flex-shrink: 0; padding-top: 2px; }
+.delete-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 17px; padding: 4px 6px; border-radius: 6px; opacity: .45; transition: opacity .15s; flex-shrink: 0; }
+.delete-btn:hover { opacity: 1; }
+
+/* ===== FAULTS ===== */
+.fault-item { background: var(--surface); border: 2px solid #fde68a; border-radius: var(--radius); padding: 15px; margin-bottom: 12px; animation: slideIn .22s ease; box-shadow: 0 2px 12px rgba(217,119,6,0.08); }
+.fault-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.fault-system { font-size: 15px; font-weight: 800; color: #92400e; }
+.fault-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+.fault-row { margin-bottom: 9px; }
+.fault-row-label { font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+.fault-row-val { font-size: 13px; line-height: 1.55; }
+.fault-note { margin-top: 10px; padding: 9px 11px; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 9px; }
+.fault-note-label { font-size: 10px; color: #92400e; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+.fault-note-val { font-size: 13px; color: #78350f; line-height: 1.5; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); border-top: 2px solid var(--border); display: flex; padding: 8px 0 env(safe-area-inset-bottom, 8px); z-index: 200; box-shadow: 0 -4px 18px rgba(99,102,241,0.10); }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 4px; cursor: pointer; border: none; background: none; font-family: 'Heebo', sans-serif; color: var(--text-muted); font-size: 11px; font-weight: 700; transition: color .15s; }
+.nav-item .nav-icon { font-size: 22px; }
+.nav-item.tab-in.active    { color: var(--accent-in); }
+.nav-item.tab-out.active   { color: var(--accent-out); }
+.nav-item.tab-fault.active { color: var(--accent-fault); }
+#main.mode-in    { --accent: var(--accent-in); }
+#main.mode-out   { --accent: var(--accent-out); }
+#main.mode-fault { --accent: var(--accent-fault); }
+.empty-state { text-align: center; padding: 36px 20px; color: var(--text-muted); }
+.empty-state .e-icon { font-size: 46px; margin-bottom: 10px; opacity: .45; }
+.empty-state p { font-size: 13px; font-weight: 600; }
+
+/* ===== REPORTS ===== */
+#reports-screen { display: none; flex-direction: column; min-height: 100vh; }
+.report-content { flex: 1; padding: 18px; padding-bottom: 40px; overflow-y: auto; }
+.report-btn { width: 100%; padding: 15px 18px; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 11px; text-align: right; display: flex; align-items: center; gap: 14px; transition: all .18s; box-shadow: var(--shadow); }
+.report-btn:hover { border-color: #a5b4fc; transform: translateY(-1px); }
+.report-btn .r-icon { font-size: 24px; }
+.report-btn .r-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+
+/* ===== CLOUD ===== */
+#cloud-screen { display: none; flex-direction: column; min-height: 100vh; }
+.cloud-content { flex: 1; padding: 18px; padding-bottom: 40px; overflow-y: auto; }
+.step-card { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.step-num { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; font-size: 14px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.step-title { font-size: 15px; font-weight: 800; }
+.step-body { font-size: 13px; color: var(--text-muted); line-height: 1.75; font-weight: 500; }
+.step-body b { color: var(--text); font-weight: 800; }
+.code-box { background: #1e1b4b; color: #a5f3fc; border-radius: 10px; padding: 12px 14px; font-family: monospace; font-size: 12px; margin: 10px 0; line-height: 1.7; word-break: break-all; }
+.cloud-input-group { margin: 12px 0; }
+.cloud-input-group label { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
+.cloud-input { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Heebo', sans-serif; font-size: 14px; padding: 10px 12px; outline: none; transition: border-color .2s; }
+.cloud-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+.cloud-save-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; transition: all .18s; margin-top: 4px; }
+.cloud-save-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.cloud-actions { display: flex; gap: 10px; margin-top: 10px; }
+.cloud-action-btn { flex: 1; padding: 11px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface); font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 800; cursor: pointer; transition: all .18s; color: var(--text); }
+.cloud-action-btn:hover { background: var(--surface2); }
+.info-box  { background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 12px; padding: 13px 15px; margin: 10px 0; font-size: 13px; color: #1d4ed8; font-weight: 600; line-height: 1.65; }
+.warn-box  { background: #fffbeb; border: 2px solid #fde68a; border-radius: 12px; padding: 13px 15px; margin: 10px 0; font-size: 13px; color: #92400e; font-weight: 600; line-height: 1.65; }
+.ok-box    { background: #f0fdf4; border: 2px solid #a7f3d0; border-radius: 12px; padding: 13px 15px; margin: 10px 0; font-size: 13px; color: #065f46; font-weight: 600; line-height: 1.65; }
+.tab-switcher { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab-sw-btn { flex: 1; padding: 10px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface); font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; color: var(--text-muted); }
+.tab-sw-btn.active { background: #1e1b4b; color: #fff; border-color: #1e1b4b; }
+.cloud-section { display: none; }
+.cloud-section.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash">
+  <div class="splash-logo">🔧</div>
+  <div class="splash-title">מערכת ניהול אקספרטיזה</div>
+  <div class="splash-sub">בחר פעולה להמשך</div>
+  <div id="cloud-badge-wrap"></div>
+  <div class="splash-btns">
+    <div class="splash-btn btn-in"    onclick="openMain('in')">   <div class="s-icon">📥</div><div><div class="s-label">אקספרטיזת כניסה</div><div class="s-sub">רישום מערכות שנכנסו לתיקון</div></div></div>
+    <div class="splash-btn btn-out"   onclick="openMain('out')">  <div class="s-icon">📤</div><div><div class="s-label">אקספרטיזת יציאה</div><div class="s-sub">רישום מערכות שיצאו מהתיקון</div></div></div>
+    <div class="splash-btn btn-fault" onclick="openMain('fault')"><div class="s-icon">⚠️</div><div><div class="s-label">תקלות בקו</div><div class="s-sub">תיעוד תקלות ופתרונות</div></div></div>
+    <div class="splash-btn btn-rep"   onclick="openReports()">    <div class="s-icon">📊</div><div><div class="s-label">הפקת דוחות</div><div class="s-sub">ייצוא לאקסל לפי חודשים</div></div></div>
+    <div class="splash-btn btn-cloud" onclick="openCloud()">      <div class="s-icon">☁️</div><div><div class="s-label">הגדרות ענן</div><div class="s-sub">סנכרון בין מכשירים</div></div></div>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div id="main">
+  <div class="header">
+    <div><div class="header-title" id="header-title">אקספרטיזת כניסה</div><div class="header-sub" id="header-sub"></div></div>
+    <button class="back-btn" onclick="goHome()">🏠 בית</button>
+  </div>
+  <div class="month-nav">
+    <button class="month-btn" onclick="changeMonth(1)">‹</button>
+    <div class="month-label" id="month-label"></div>
+    <button class="month-btn" onclick="changeMonth(-1)">›</button>
+  </div>
+  <div class="content">
+    <div id="form-inout" class="form-card">
+      <h3 id="form-title">📥 הוספת מערכת חדשה</h3>
+      <div class="form-group"><label>שם המערכת</label><input type="text" id="sys-name" placeholder="הכנס שם מערכת..." autocomplete="off"></div>
+      <div class="form-group"><label>תאריך</label><input type="date" id="sys-date"></div>
+      <div id="complaint-group" class="form-group" style="display:none"><label>תלונה עיקרית</label><textarea id="sys-complaint" placeholder="תאר את התלונה העיקרית של המערכת..."></textarea></div>
+      <button class="submit-btn" id="submit-btn" onclick="addEntry()">✅ הוסף מערכת</button>
+    </div>
+    <div id="form-fault" class="form-card" style="display:none">
+      <h3>⚠️ רישום תקלה חדשה</h3>
+      <div class="form-group"><label>שם המערכת</label><input type="text" id="f-sys" placeholder="איזו מערכת?" autocomplete="off"></div>
+      <div class="form-group"><label>תאריך</label><input type="date" id="f-date"></div>
+      <div class="form-group"><label>תיאור התקלה</label><textarea id="f-fault" placeholder="מה התקלה?"></textarea></div>
+      <div class="form-group"><label>גורם התקלה</label><textarea id="f-cause" placeholder="מה גרם לתקלה?"></textarea></div>
+      <div class="form-group"><label>פתרון התקלה</label><textarea id="f-solution" placeholder="מה הפתרון?"></textarea></div>
+      <div class="form-group"><label>הערות נוספות</label><textarea id="f-notes" placeholder="הערות, מידע נוסף, המלצות..."></textarea></div>
+      <button class="submit-btn" style="background:linear-gradient(135deg,#d97706,#b45309);color:#fff" onclick="addFault()">⚠️ הוסף תקלה</button>
+    </div>
+    <div class="counter-row" id="counters">
+      <div class="counter-card"><div class="counter-num" id="cnt-month" style="color:var(--accent)">0</div><div class="counter-label">החודש</div></div>
+      <div class="counter-card"><div class="counter-num" id="cnt-total" style="color:#a5b4fc">0</div><div class="counter-label">סה״כ</div></div>
+    </div>
+    <div class="section-header">
+      <h3 id="list-title">רשימת מערכות</h3>
+      <button class="export-btn" onclick="exportCurrentView()">📥 ייצוא</button>
+    </div>
+    <div id="list-container"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item tab-in"    onclick="switchTab('in')"    id="nav-in">   <span class="nav-icon">📥</span><span>כניסה</span></button>
+    <button class="nav-item tab-out"   onclick="switchTab('out')"   id="nav-out">  <span class="nav-icon">📤</span><span>יציאה</span></button>
+    <button class="nav-item tab-fault" onclick="switchTab('fault')" id="nav-fault"><span class="nav-icon">⚠️</span><span>תקלות</span></button>
+  </div>
+</div>
+
+<!-- ===== REPORTS ===== -->
+<div id="reports-screen">
+  <div class="header"><div><div class="header-title">📊 הפקת דוחות</div><div class="header-sub">ייצוא נתונים לאקסל</div></div><button class="back-btn" onclick="goHome()">🏠 בית</button></div>
+  <div class="report-content">
+    <div style="background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:16px;box-shadow:var(--shadow)">
+      <div style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">טווח תאריכים</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="font-size:11px;color:var(--text-muted);font-weight:700;display:block;margin-bottom:4px">מ</label><input type="month" id="r-from" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:8px 10px;font-family:Heebo;font-size:13px;outline:none;font-weight:600"></div>
+        <div style="flex:1"><label style="font-size:11px;color:var(--text-muted);font-weight:700;display:block;margin-bottom:4px">עד</label><input type="month" id="r-to" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:8px 10px;font-family:Heebo;font-size:13px;outline:none;font-weight:600"></div>
+      </div>
+    </div>
+    <button class="report-btn" onclick="exportAllExpertise()"><span class="r-icon">📊</span><div><div>אקספרטיזה כניסה + יציאה</div><div class="r-sub">גיליון נפרד לכל חודש</div></div></button>
+    <button class="report-btn" onclick="exportInOnly()"><span class="r-icon">📥</span><div><div>דוח כניסות בלבד</div><div class="r-sub">כולל תלונה עיקרית</div></div></button>
+    <button class="report-btn" onclick="exportOutOnly()"><span class="r-icon">📤</span><div><div>דוח יציאות בלבד</div><div class="r-sub">רשימת מערכות שיצאו</div></div></button>
+    <button class="report-btn" onclick="exportFaults()"><span class="r-icon">⚠️</span><div><div>דוח תקלות</div><div class="r-sub">כולל הערות נוספות</div></div></button>
+    <button class="report-btn" onclick="exportSummary()"><span class="r-icon">📈</span><div><div>סיכום חודשי</div><div class="r-sub">כניסות, יציאות, תקלות</div></div></button>
+  </div>
+</div>
+
+<!-- ===== CLOUD ===== -->
+<div id="cloud-screen">
+  <div class="header"><div><div class="header-title">☁️ הגדרות ענן</div><div class="header-sub">סנכרון בין מכשירים — ללא כרטיס אשראי</div></div><button class="back-btn" onclick="goHome()">🏠 בית</button></div>
+  <div class="cloud-content">
+
+    <div id="cloud-status-box" style="margin-bottom:14px"></div>
+
+    <!-- TAB SWITCHER -->
+    <div class="tab-switcher">
+      <button class="tab-sw-btn active" onclick="showCloudTab('jsonbin')" id="tab-jsonbin">JSONBin.io</button>
+      <button class="tab-sw-btn" onclick="showCloudTab('npoint')"  id="tab-npoint">npoint.io</button>
+    </div>
+
+    <!-- ========== JSONBIN ========== -->
+    <div class="cloud-section active" id="section-jsonbin">
+      <div class="ok-box">✅ <b>JSONBin.io</b> — חינמי לגמרי, ללא כרטיס אשראי.<br>נדרש רק מייל להרשמה. 10,000 בקשות/חודש בחינם.</div>
+
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">1</div><div class="step-title">צור חשבון ב-JSONBin.io</div></div>
+        <div class="step-body">
+          לך ל-<b>jsonbin.io</b> → לחץ <b>"Sign Up"</b><br>
+          הכנס מייל + סיסמה → אשר את המייל שקיבלת<br>
+          ⚠️ <b>אין צורך בכרטיס אשראי בשום שלב!</b>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">2</div><div class="step-title">קבל API Key</div></div>
+        <div class="step-body">
+          אחרי כניסה → לחץ על שמך בפינה הימנית → <b>"API Keys"</b><br>
+          לחץ <b>"Create API Key"</b> → שם: <b>expertiza</b> → <b>Create</b><br>
+          העתק את ה-Key — הוא מתחיל כך:
+        </div>
+        <div class="code-box">$2a$10$xxxxxxxxxxxxxxxxxxxxxxxx...</div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">3</div><div class="step-title">צור Bin לאחסון הנתונים</div></div>
+        <div class="step-body">
+          בתפריט לחץ <b>"Bins"</b> → <b>"Create a Bin"</b><br>
+          במקום הטקסט הכנס: <b>{}</b><br>
+          לחץ <b>"Create"</b><br>
+          העתק את ה-<b>BIN ID</b> (מספר שנראה כך):
+        </div>
+        <div class="code-box">64a8f2c3e3267a27ec123456</div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">4</div><div class="step-title">הכנס את הפרטים כאן</div></div>
+        <div class="cloud-input-group">
+          <label>API Key</label>
+          <input class="cloud-input" type="text" id="jb-apikey" placeholder="$2a$10$...">
+        </div>
+        <div class="cloud-input-group">
+          <label>Bin ID</label>
+          <input class="cloud-input" type="text" id="jb-binid" placeholder="64a8f2c3e3267a27ec123456">
+        </div>
+        <button class="cloud-save-btn" onclick="saveJsonbinConfig()">💾 שמור ובדוק חיבור</button>
+        <div class="cloud-actions">
+          <button class="cloud-action-btn" onclick="pushJsonbin()">⬆️ שלח לענן</button>
+          <button class="cloud-action-btn" onclick="pullJsonbin()">⬇️ משוך מהענן</button>
+        </div>
+        <div id="jb-msg"></div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">5</div><div class="step-title">שימוש יומי</div></div>
+        <div class="step-body">
+          <b>⬆️ שלח לענן</b> — שולח את כל הנתונים מהמכשיר לענן<br><br>
+          <b>⬇️ משוך מהענן</b> — מוריד נתונים עדכניים מהענן<br><br>
+          <b>💡 שתף עם עמיתים:</b> שלח להם את ה-API Key + Bin ID ← כולם עובדים על אותו מסד נתונים!
+        </div>
+        <div class="ok-box">✅ חינמי! לא יחייב אותך ולא ידרוש כרטיס אשראי לעולם.</div>
+      </div>
+    </div>
+
+    <!-- ========== NPOINT ========== -->
+    <div class="cloud-section" id="section-npoint">
+      <div class="ok-box">✅ <b>npoint.io</b> — חינמי לחלוטין, ללא הרשמה כלל!<br>הכי פשוט לשימוש — יוצרים endpoint בלחיצה.</div>
+
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">1</div><div class="step-title">צור endpoint ב-npoint.io</div></div>
+        <div class="step-body">
+          לך ל-<b>npoint.io</b><br>
+          בתיבת הטקסט הגדולה הכנס: <b>{}</b><br>
+          לחץ <b>"Save"</b> (או "Generate Endpoint")<br>
+          תקבל URL שנראה כך:
+        </div>
+        <div class="code-box">https://api.npoint.io/abc123def456</div>
+        <div class="step-body">
+          ⚠️ <b>שמור את ה-URL הזה!</b> זה כל מה שתצטרך.<br>
+          כדי לערוך בעתיד — זכור להוסיף מייל לשמירת הגישה.
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">2</div><div class="step-title">הכנס את ה-URL כאן</div></div>
+        <div class="cloud-input-group">
+          <label>npoint Endpoint URL</label>
+          <input class="cloud-input" type="url" id="np-url" placeholder="https://api.npoint.io/abc123def456">
+        </div>
+        <button class="cloud-save-btn" onclick="saveNpointConfig()">💾 שמור ובדוק חיבור</button>
+        <div class="cloud-actions">
+          <button class="cloud-action-btn" onclick="pushNpoint()">⬆️ שלח לענן</button>
+          <button class="cloud-action-btn" onclick="pullNpoint()">⬇️ משוך מהענן</button>
+        </div>
+        <div id="np-msg"></div>
+      </div>
+
+      <div class="warn-box">⚠️ npoint.io מתאים לשימוש אישי פשוט. לשיתוף בין מכשירים מרובים, עדיף JSONBin.io.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+let db = JSON.parse(localStorage.getItem('expertiza_db') || '{"in":[],"out":[],"faults":[]}');
+let currentTab = 'in', currentYear, currentMonth;
+function save() { localStorage.setItem('expertiza_db', JSON.stringify(db)); }
+function todayStr() { return new Date().toISOString().slice(0,10); }
+const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+function formatDate(s) { if(!s)return''; const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; }
+function getMonthKey(d) { return d?d.slice(0,7):''; }
+function monthLabel(y,m) { return `${monthNames[m]} ${y}`; }
+
+// ===== CLOUD — JSONBin =====
+function getJbCfg() { return { key: localStorage.getItem('jb_key')||'', bin: localStorage.getItem('jb_bin')||'' }; }
+
+async function saveJsonbinConfig() {
+  const key = document.getElementById('jb-apikey').value.trim();
+  const bin = document.getElementById('jb-binid').value.trim();
+  if(!key||!bin){showJbMsg('אנא הכנס API Key ו-Bin ID','warn');return;}
+  localStorage.setItem('jb_key', key);
+  localStorage.setItem('jb_bin', bin);
+  showJbMsg('⏳ בודק חיבור...','info');
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${bin}/latest`, { headers: {'X-Master-Key': key} });
+    if(r.ok){ showJbMsg('✅ החיבור הצליח! JSONBin.io מוגדר.','ok'); updateCloudBadge(); updateCloudStatusBox(); }
+    else showJbMsg('❌ שגיאה '+r.status+' — בדוק API Key ו-Bin ID','err');
+  } catch(e){ showJbMsg('❌ שגיאת רשת','err'); }
+}
+
+async function pushJsonbin() {
+  const {key,bin}=getJbCfg();
+  if(!key||!bin){showJbMsg('הגדר JSONBin תחילה','warn');return;}
+  showJbMsg('⬆️ שולח...','info');
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${bin}`, {
+      method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key':key},
+      body: JSON.stringify(db)
+    });
+    if(r.ok) showJbMsg('✅ הנתונים נשלחו לענן!','ok');
+    else showJbMsg('❌ שגיאה: '+r.status,'err');
+  } catch(e){ showJbMsg('❌ שגיאת רשת','err'); }
+}
+
+async function pullJsonbin() {
+  const {key,bin}=getJbCfg();
+  if(!key||!bin){showJbMsg('הגדר JSONBin תחילה','warn');return;}
+  showJbMsg('⬇️ מושך...','info');
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${bin}/latest`, { headers:{'X-Master-Key':key} });
+    const d = await r.json();
+    if(d.record && d.record.in){ db=d.record; save(); showJbMsg('✅ הנתונים עודכנו מהענן!','ok'); }
+    else showJbMsg('ℹ️ אין נתונים בענן עדיין','info');
+  } catch(e){ showJbMsg('❌ שגיאת רשת','err'); }
+}
+
+function showJbMsg(txt,type){ msgBox('jb-msg',txt,type); }
+
+// ===== CLOUD — npoint =====
+function getNpCfg() { return localStorage.getItem('np_url')||''; }
+
+async function saveNpointConfig() {
+  const url = document.getElementById('np-url').value.trim();
+  if(!url){showNpMsg('אנא הכנס URL','warn');return;}
+  localStorage.setItem('np_url', url);
+  showNpMsg('⏳ בודק חיבור...','info');
+  try {
+    const r = await fetch(url);
+    if(r.ok){ showNpMsg('✅ החיבור הצליח! npoint.io מוגדר.','ok'); updateCloudBadge(); updateCloudStatusBox(); }
+    else showNpMsg('❌ שגיאה: '+r.status,'err');
+  } catch(e){ showNpMsg('❌ שגיאת רשת. בדוק את ה-URL','err'); }
+}
+
+async function pushNpoint() {
+  const url=getNpCfg();
+  if(!url){showNpMsg('הגדר npoint תחילה','warn');return;}
+  showNpMsg('⬆️ שולח...','info');
+  try {
+    const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(db)});
+    if(r.ok) showNpMsg('✅ הנתונים נשלחו לענן!','ok');
+    else showNpMsg('❌ שגיאה: '+r.status+'. ייתכן ש-npoint.io לא תומך ב-PUT','warn');
+  } catch(e){ showNpMsg('❌ שגיאת רשת','err'); }
+}
+
+async function pullNpoint() {
+  const url=getNpCfg();
+  if(!url){showNpMsg('הגדר npoint תחילה','warn');return;}
+  showNpMsg('⬇️ מושך...','info');
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    if(d && d.in){ db=d; save(); showNpMsg('✅ הנתונים עודכנו מהענן!','ok'); }
+    else showNpMsg('ℹ️ אין נתונים בענן עדיין','info');
+  } catch(e){ showNpMsg('❌ שגיאת רשת','err'); }
+}
+
+function showNpMsg(txt,type){ msgBox('np-msg',txt,type); }
+
+function msgBox(id,txt,type){
+  const colors={ok:'#f0fdf4;border:2px solid #a7f3d0;color:#065f46',warn:'#fffbeb;border:2px solid #fde68a;color:#92400e',err:'#fef2f2;border:2px solid #fecaca;color:#991b1b',info:'#eff6ff;border:2px solid #bfdbfe;color:#1d4ed8'};
+  document.getElementById(id).innerHTML=`<div style="background:${colors[type]};border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;margin-top:8px">${txt}</div>`;
+}
+
+function isCloudConfigured() {
+  const {key,bin}=getJbCfg();
+  return (key&&bin) || getNpCfg();
+}
+
+function updateCloudBadge() {
+  const wrap=document.getElementById('cloud-badge-wrap');
+  wrap.innerHTML=isCloudConfigured()
+    ?`<div class="cloud-badge cloud-ok">☁️ ענן מחובר</div>`
+    :`<div class="cloud-badge cloud-off">☁️ ענן לא מוגדר</div>`;
+}
+
+function updateCloudStatusBox() {
+  const {key,bin}=getJbCfg(); const np=getNpCfg();
+  const box=document.getElementById('cloud-status-box');
+  if(key&&bin){
+    box.innerHTML=`<div class="ok-box">✅ JSONBin.io מוגדר<br>Bin: <b>${bin}</b></div>`;
+    document.getElementById('jb-apikey').value=key;
+    document.getElementById('jb-binid').value=bin;
+  } else if(np){
+    box.innerHTML=`<div class="ok-box">✅ npoint.io מוגדר<br>URL: <b>${np.slice(0,45)}...</b></div>`;
+    document.getElementById('np-url').value=np;
+  } else {
+    box.innerHTML=`<div class="info-box">ℹ️ עדיין לא הגדרת חיבור לענן.<br>בחר שירות למטה — שניהם חינמיים ובלי כרטיס אשראי!</div>`;
+  }
+}
+
+function showCloudTab(tab) {
+  ['jsonbin','npoint'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('section-'+t).classList.toggle('active', t===tab);
+  });
+}
+
+// ===== NAV =====
+function goHome() {
+  ['splash','main','reports-screen','cloud-screen'].forEach(id => {
+    document.getElementById(id).style.display = id==='splash'?'flex':'none';
+  });
+  updateCloudBadge();
+}
+
+function openMain(tab) {
+  document.getElementById('splash').style.display='none';
+  ['reports-screen','cloud-screen'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('main').style.display='flex';
+  const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
+  switchTab(tab);
+}
+
+function openReports() {
+  document.getElementById('splash').style.display='none';
+  document.getElementById('main').style.display='none';
+  document.getElementById('cloud-screen').style.display='none';
+  document.getElementById('reports-screen').style.display='flex';
+  const now=new Date();
+  document.getElementById('r-from').value=new Date(now.getFullYear(),now.getMonth()-5,1).toISOString().slice(0,7);
+  document.getElementById('r-to').value=now.toISOString().slice(0,7);
+}
+
+function openCloud() {
+  document.getElementById('splash').style.display='none';
+  document.getElementById('main').style.display='none';
+  document.getElementById('reports-screen').style.display='none';
+  document.getElementById('cloud-screen').style.display='flex';
+  updateCloudStatusBox();
+}
+
+function switchTab(tab) {
+  currentTab=tab;
+  const main=document.getElementById('main');
+  main.className=`mode-${tab}`; main.style.display='flex';
+  ['in','out','fault'].forEach(t=>document.getElementById(`nav-${t}`).classList.toggle('active',t===tab));
+  document.getElementById('header-title').textContent={in:'אקספרטיזת כניסה',out:'אקספרטיזת יציאה',fault:'תקלות בקו'}[tab];
+  document.getElementById('form-inout').style.display=tab!=='fault'?'block':'none';
+  document.getElementById('form-fault').style.display=tab==='fault'?'block':'none';
+  document.getElementById('counters').style.display=tab==='fault'?'none':'flex';
+  document.getElementById('complaint-group').style.display=tab==='in'?'block':'none';
+  if(tab!=='fault'){
+    document.getElementById('form-title').textContent=tab==='in'?'📥 הוספת מערכת חדשה':'📤 הוספת מערכת חדשה';
+    document.getElementById('submit-btn').style.background=tab==='in'?'linear-gradient(135deg,#2563eb,#1d4ed8)':'linear-gradient(135deg,#059669,#047857)';
+    document.getElementById('submit-btn').style.color='#fff';
+    document.getElementById('sys-date').value=todayStr();
+  } else { document.getElementById('f-date').value=todayStr(); document.getElementById('list-title').textContent='רשימת תקלות'; }
+  updateMonthLabel(); renderList();
+}
+
+function changeMonth(dir) {
+  currentMonth+=dir;
+  if(currentMonth<0){currentMonth=11;currentYear--;}
+  if(currentMonth>11){currentMonth=0;currentYear++;}
+  updateMonthLabel(); renderList();
+}
+
+function updateMonthLabel() {
+  const lbl=monthLabel(currentYear,currentMonth);
+  document.getElementById('month-label').textContent=lbl;
+  document.getElementById('header-sub').textContent=lbl;
+}
+
+// ===== ENTRIES =====
+function addEntry() {
+  const name=document.getElementById('sys-name').value.trim();
+  const date=document.getElementById('sys-date').value;
+  const complaint=currentTab==='in'?document.getElementById('sys-complaint').value.trim():'';
+  if(!name){alert('אנא הכנס שם מערכת');return;}
+  if(!date){alert('אנא בחר תאריך');return;}
+  const e={id:Date.now(),name,date};
+  if(complaint)e.complaint=complaint;
+  db[currentTab].push(e); save();
+  document.getElementById('sys-name').value='';
+  document.getElementById('sys-date').value=todayStr();
+  if(currentTab==='in')document.getElementById('sys-complaint').value='';
+  renderList();
+}
+
+function deleteEntry(tab,id){if(!confirm('למחוק רשומה זו?'))return;db[tab]=db[tab].filter(e=>e.id!==id);save();renderList();}
+
+function addFault() {
+  const sys=document.getElementById('f-sys').value.trim();
+  const date=document.getElementById('f-date').value;
+  const fault=document.getElementById('f-fault').value.trim();
+  const cause=document.getElementById('f-cause').value.trim();
+  const solution=document.getElementById('f-solution').value.trim();
+  const notes=document.getElementById('f-notes').value.trim();
+  if(!sys||!fault){alert('אנא הכנס לפחות שם מערכת ותיאור תקלה');return;}
+  db.faults.push({id:Date.now(),sys,date,fault,cause,solution,notes});
+  save();
+  ['f-sys','f-fault','f-cause','f-solution','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-date').value=todayStr();
+  renderList();
+}
+
+function deleteFault(id){if(!confirm('למחוק תקלה זו?'))return;db.faults=db.faults.filter(e=>e.id!==id);save();renderList();}
+
+function renderList() {
+  const mk=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+  const container=document.getElementById('list-container');
+  container.innerHTML='';
+  if(currentTab==='fault'){
+    const items=db.faults.filter(f=>getMonthKey(f.date)===mk).sort((a,b)=>b.date.localeCompare(a.date));
+    if(!items.length){container.innerHTML=`<div class="empty-state"><div class="e-icon">🔍</div><p>אין תקלות בחודש זה</p></div>`;return;}
+    items.forEach(f=>{
+      const el=document.createElement('div'); el.className='fault-item';
+      el.innerHTML=`
+        <div class="fault-header"><div><div class="fault-system">🔧 ${f.sys}</div><div class="fault-date">📅 ${formatDate(f.date)}</div></div><button class="delete-btn" onclick="deleteFault(${f.id})">🗑</button></div>
+        ${f.fault?`<div class="fault-row"><div class="fault-row-label">תיאור התקלה</div><div class="fault-row-val">${f.fault}</div></div>`:''}
+        ${f.cause?`<div class="fault-row"><div class="fault-row-label">גורם התקלה</div><div class="fault-row-val">${f.cause}</div></div>`:''}
+        ${f.solution?`<div class="fault-row"><div class="fault-row-label">פתרון</div><div class="fault-row-val">${f.solution}</div></div>`:''}
+        ${f.notes?`<div class="fault-note"><div class="fault-note-label">📝 הערות</div><div class="fault-note-val">${f.notes}</div></div>`:''}
+      `;
+      container.appendChild(el);
+    });
+    return;
+  }
+  const items=db[currentTab].filter(e=>getMonthKey(e.date)===mk).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('cnt-month').textContent=items.length;
+  document.getElementById('cnt-total').textContent=db[currentTab].length;
+  if(!items.length){container.innerHTML=`<div class="empty-state"><div class="e-icon">📭</div><p>אין מערכות בחודש זה</p></div>`;return;}
+  items.forEach((e,i)=>{
+    const el=document.createElement('div'); el.className='entry-item';
+    const bg=currentTab==='in'?'#dbeafe':'#d1fae5';
+    el.innerHTML=`
+      <div style="width:36px;height:36px;border-radius:10px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:17px;margin-left:12px;flex-shrink:0">${currentTab==='in'?'📥':'📤'}</div>
+      <div class="entry-main">
+        <div class="entry-name">${e.name}</div>
+        <div class="entry-date">📅 ${formatDate(e.date)}</div>
+        ${e.complaint?`<div class="entry-complaint">💬 ${e.complaint}</div>`:''}
+      </div>
+      <div class="entry-num">#${i+1}</div>
+      <button class="delete-btn" onclick="deleteEntry('${currentTab}',${e.id})">🗑</button>
+    `;
+    container.appendChild(el);
+  });
+}
+
+// ===== EXPORT =====
+function getRange(){return{from:document.getElementById('r-from').value||'2000-01',to:document.getElementById('r-to').value||'2099-12'};}
+function inRange(d,f,t){const m=getMonthKey(d);return m>=f&&m<=t;}
+function getAllMonths(from,to){const months=[];let [fy,fm]=from.split('-').map(Number);const [ty,tm]=to.split('-').map(Number);while(fy<ty||(fy===ty&&fm<=tm)){months.push(`${fy}-${String(fm).padStart(2,'0')}`);fm++;if(fm>12){fm=1;fy++;}}return months;}
+
+function exportAllExpertise(){
+  const {from,to}=getRange();const months=getAllMonths(from,to);const wb=XLSX.utils.book_new();
+  months.forEach(mk=>{
+    const [y,m]=mk.split('-');const label=`${monthNames[Number(m)-1]} ${y}`;
+    const ins=db.in.filter(e=>getMonthKey(e.date)===mk);const outs=db.out.filter(e=>getMonthKey(e.date)===mk);
+    if(!ins.length&&!outs.length)return;
+    const maxRows=Math.max(ins.length,outs.length);
+    const rows=[['#','כניסה - מערכת','תלונה עיקרית','תאריך כניסה','','#','יציאה - מערכת','תאריך יציאה']];
+    for(let i=0;i<maxRows;i++){const ci=ins[i],co=outs[i];rows.push([ci?i+1:'',ci?ci.name:'',ci?ci.complaint||'':'',ci?formatDate(ci.date):'',' ',co?i+1:'',co?co.name:'',co?formatDate(co.date):'']);}
+    rows.push(['','','','','','','','']);rows.push([`סה"כ כניסות: ${ins.length}`,'','','','',`סה"כ יציאות: ${outs.length}`,'','']);
+    const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:4},{wch:22},{wch:28},{wch:14},{wch:2},{wch:4},{wch:22},{wch:14}];
+    XLSX.utils.book_append_sheet(wb,ws,label.slice(0,31));
+  });
+  if(!wb.SheetNames.length){alert('אין נתונים בטווח שנבחר');return;}
+  XLSX.writeFile(wb,`אקספרטיזה_${from}_${to}.xlsx`);
+}
+function exportInOnly(){
+  const {from,to}=getRange();const items=db.in.filter(e=>inRange(e.date,from,to)).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!items.length){alert('אין נתוני כניסה בטווח זה');return;}
+  const wb=XLSX.utils.book_new();const months=[...new Set(items.map(e=>getMonthKey(e.date)))];
+  months.forEach(mk=>{const [y,m]=mk.split('-');const label=`${monthNames[Number(m)-1]} ${y}`;const rows=[['#','שם מערכת','תלונה עיקרית','תאריך']];items.filter(e=>getMonthKey(e.date)===mk).forEach((e,i)=>rows.push([i+1,e.name,e.complaint||'',formatDate(e.date)]));const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:4},{wch:24},{wch:30},{wch:14}];XLSX.utils.book_append_sheet(wb,ws,label.slice(0,31));});
+  XLSX.writeFile(wb,`כניסות_${from}_${to}.xlsx`);
+}
+function exportOutOnly(){
+  const {from,to}=getRange();const items=db.out.filter(e=>inRange(e.date,from,to)).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!items.length){alert('אין נתוני יציאה בטווח זה');return;}
+  const wb=XLSX.utils.book_new();const months=[...new Set(items.map(e=>getMonthKey(e.date)))];
+  months.forEach(mk=>{const [y,m]=mk.split('-');const label=`${monthNames[Number(m)-1]} ${y}`;const rows=[['#','שם מערכת','תאריך']];items.filter(e=>getMonthKey(e.date)===mk).forEach((e,i)=>rows.push([i+1,e.name,formatDate(e.date)]));const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:4},{wch:28},{wch:14}];XLSX.utils.book_append_sheet(wb,ws,label.slice(0,31));});
+  XLSX.writeFile(wb,`יציאות_${from}_${to}.xlsx`);
+}
+function exportFaults(){
+  const {from,to}=getRange();const items=db.faults.filter(e=>inRange(e.date,from,to)).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!items.length){alert('אין תקלות בטווח זה');return;}
+  const wb=XLSX.utils.book_new();const rows=[['#','מערכת','תאריך','תיאור תקלה','גורם','פתרון','הערות']];
+  items.forEach((f,i)=>rows.push([i+1,f.sys,formatDate(f.date),f.fault,f.cause,f.solution,f.notes||'']));
+  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:4},{wch:18},{wch:12},{wch:28},{wch:24},{wch:28},{wch:24}];
+  XLSX.utils.book_append_sheet(wb,ws,'תקלות');XLSX.writeFile(wb,`תקלות_${from}_${to}.xlsx`);
+}
+function exportSummary(){
+  const {from,to}=getRange();const months=getAllMonths(from,to);const wb=XLSX.utils.book_new();
+  const rows=[['חודש','כניסות','יציאות','תקלות']];
+  months.forEach(mk=>{const [y,m]=mk.split('-');const label=`${monthNames[Number(m)-1]} ${y}`;rows.push([label,db.in.filter(e=>getMonthKey(e.date)===mk).length,db.out.filter(e=>getMonthKey(e.date)===mk).length,db.faults.filter(e=>getMonthKey(e.date)===mk).length]);});
+  rows.push(['']);rows.push(['סה"כ',db.in.length,db.out.length,db.faults.length]);
+  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:18},{wch:10},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws,'סיכום חודשי');XLSX.writeFile(wb,`סיכום_חודשי_${from}_${to}.xlsx`);
+}
+function exportCurrentView(){
+  const mk=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;const label=monthLabel(currentYear,currentMonth);const wb=XLSX.utils.book_new();
+  if(currentTab==='fault'){
+    const items=db.faults.filter(e=>getMonthKey(e.date)===mk);if(!items.length){alert('אין תקלות בחודש זה');return;}
+    const rows=[['#','מערכת','תאריך','תיאור תקלה','גורם','פתרון','הערות']];items.forEach((f,i)=>rows.push([i+1,f.sys,formatDate(f.date),f.fault,f.cause,f.solution,f.notes||'']));
+    const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:4},{wch:18},{wch:12},{wch:28},{wch:24},{wch:28},{wch:24}];XLSX.utils.book_append_sheet(wb,ws,label);XLSX.writeFile(wb,`תקלות_${mk}.xlsx`);
+  } else {
+    const items=db[currentTab].filter(e=>getMonthKey(e.date)===mk);if(!items.length){alert('אין מערכות בחודש זה');return;}
+    const rows=currentTab==='in'?[['#','שם מערכת','תלונה עיקרית','תאריך']]:[['#','שם מערכת','תאריך']];
+    items.forEach((e,i)=>currentTab==='in'?rows.push([i+1,e.name,e.complaint||'',formatDate(e.date)]):rows.push([i+1,e.name,formatDate(e.date)]));
+    const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=currentTab==='in'?[{wch:4},{wch:24},{wch:30},{wch:14}]:[{wch:4},{wch:28},{wch:14}];
+    XLSX.utils.book_append_sheet(wb,ws,label);XLSX.writeFile(wb,`${currentTab==='in'?'כניסות':'יציאות'}_${mk}.xlsx`);
+  }
+}
+
+// Init
+const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
+updateCloudBadge();
+</script>
+</body>
+</html>
