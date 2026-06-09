@@ -152,6 +152,8 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 .report-btn:hover { border-color: #a5b4fc; transform: translateY(-1px); }
 .report-btn .r-icon { font-size: 24px; }
 .report-btn .r-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+.range-quick-btn { flex:1; padding:9px 6px; border-radius:10px; border:2px solid var(--border); background:var(--surface); font-family:'Heebo',sans-serif; font-size:13px; font-weight:800; cursor:pointer; transition:all .15s; color:var(--text-muted); }
+.range-quick-btn.active { background:#1e1b4b; color:#fff; border-color:#1e1b4b; }
 
 /* ===== CLOUD ===== */
 #cloud-screen { display: none; flex-direction: column; min-height: 100vh; }
@@ -249,11 +251,41 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 <div id="reports-screen">
   <div class="header"><div><div class="header-title">📊 הפקת דוחות</div><div class="header-sub">ייצוא נתונים לאקסל</div></div><button class="back-btn" onclick="goHome()">🏠 בית</button></div>
   <div class="report-content">
+    <!-- Range selector -->
     <div style="background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:16px;box-shadow:var(--shadow)">
-      <div style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">טווח תאריכים</div>
-      <div style="display:flex;gap:10px">
-        <div style="flex:1"><label style="font-size:11px;color:var(--text-muted);font-weight:700;display:block;margin-bottom:4px">מ</label><input type="month" id="r-from" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:8px 10px;font-family:Heebo;font-size:13px;outline:none;font-weight:600"></div>
-        <div style="flex:1"><label style="font-size:11px;color:var(--text-muted);font-weight:700;display:block;margin-bottom:4px">עד</label><input type="month" id="r-to" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:8px 10px;font-family:Heebo;font-size:13px;outline:none;font-weight:600"></div>
+      <div style="font-size:12px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">📅 בחר טווח לדוח</div>
+
+      <!-- 3 quick buttons -->
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="range-quick-btn active" id="rbtn-month"   onclick="setRangeMode('month')"  >החודש</button>
+        <button class="range-quick-btn"        id="rbtn-year"    onclick="setRangeMode('year')"   >השנה</button>
+        <button class="range-quick-btn"        id="rbtn-custom"  onclick="setRangeMode('custom')" >מותאם</button>
+      </div>
+
+      <!-- Current month display -->
+      <div id="range-month-display" style="text-align:center;font-size:15px;font-weight:800;color:var(--accent-in);padding:6px 0">
+        <span id="range-month-label"></span>
+        <div style="display:flex;justify-content:center;gap:12px;margin-top:8px">
+          <button onclick="shiftReportMonth(-1)" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;font-weight:700">‹</button>
+          <button onclick="shiftReportMonth(1)"  style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;font-weight:700">›</button>
+        </div>
+      </div>
+
+      <!-- Year display -->
+      <div id="range-year-display" style="display:none;text-align:center;font-size:15px;font-weight:800;color:var(--accent-in);padding:6px 0">
+        <span id="range-year-label"></span>
+        <div style="display:flex;justify-content:center;gap:12px;margin-top:8px">
+          <button onclick="shiftReportYear(-1)" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;font-weight:700">‹</button>
+          <button onclick="shiftReportYear(1)"  style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;font-weight:700">›</button>
+        </div>
+      </div>
+
+      <!-- Custom range -->
+      <div id="range-custom-display" style="display:none">
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label style="font-size:11px;color:var(--text-muted);font-weight:700;display:block;margin-bottom:4px">מ</label><input type="month" id="r-from" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:8px 10px;font-family:Heebo;font-size:13px;outline:none;font-weight:600"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--text-muted);font-weight:700;display:block;margin-bottom:4px">עד</label><input type="month" id="r-to" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:8px 10px;font-family:Heebo;font-size:13px;outline:none;font-weight:600"></div>
+        </div>
       </div>
     </div>
     <button class="report-btn" onclick="exportAllExpertise()"><span class="r-icon">📊</span><div><div>אקספרטיזה כניסה + יציאה</div><div class="r-sub">גיליון נפרד לכל חודש</div></div></button>
@@ -565,9 +597,7 @@ function openReports() {
   document.getElementById('main').style.display='none';
   document.getElementById('cloud-screen').style.display='none';
   document.getElementById('reports-screen').style.display='flex';
-  const now=new Date();
-  document.getElementById('r-from').value=new Date(now.getFullYear(),now.getMonth()-5,1).toISOString().slice(0,7);
-  document.getElementById('r-to').value=now.toISOString().slice(0,7);
+  initReportRange();
 }
 
 function openCloud() {
@@ -687,7 +717,6 @@ function renderList() {
 }
 
 // ===== EXPORT =====
-function getRange(){return{from:document.getElementById('r-from').value||'2000-01',to:document.getElementById('r-to').value||'2099-12'};}
 function inRange(d,f,t){const m=getMonthKey(d);return m>=f&&m<=t;}
 function getAllMonths(from,to){const months=[];let [fy,fm]=from.split('-').map(Number);const [ty,tm]=to.split('-').map(Number);while(fy<ty||(fy===ty&&fm<=tm)){months.push(`${fy}-${String(fm).padStart(2,'0')}`);fm++;if(fm>12){fm=1;fy++;}}return months;}
 
@@ -825,9 +854,98 @@ function saveEdit() {
 
 // ===== EDIT MODAL =====
 
+// ===== REPORT RANGE =====
+let reportRangeMode = 'month';
+let reportRangeMonth, reportRangeYear;
+
+function initReportRange() {
+  const now = new Date();
+  reportRangeMonth = now.getMonth();
+  reportRangeYear  = now.getFullYear();
+  setRangeMode('month');
+}
+
+function setRangeMode(mode) {
+  reportRangeMode = mode;
+  ['month','year','custom'].forEach(m => {
+    document.getElementById(`rbtn-${m}`).classList.toggle('active', m === mode);
+    const el = document.getElementById(`range-${m}-display`);
+    if (el) el.style.display = m === mode ? 'block' : 'none';
+  });
+  updateRangeLabels();
+}
+
+function updateRangeLabels() {
+  document.getElementById('range-month-label').textContent =
+    `${monthNames[reportRangeMonth]} ${reportRangeYear}`;
+  document.getElementById('range-year-label').textContent =
+    `שנת ${reportRangeYear}`;
+}
+
+function shiftReportMonth(dir) {
+  reportRangeMonth += dir;
+  if (reportRangeMonth < 0)  { reportRangeMonth = 11; reportRangeYear--; }
+  if (reportRangeMonth > 11) { reportRangeMonth = 0;  reportRangeYear++; }
+  updateRangeLabels();
+}
+
+function shiftReportYear(dir) {
+  reportRangeYear += dir;
+  updateRangeLabels();
+}
+
+function getRange() {
+  if (reportRangeMode === 'month') {
+    const mk = `${reportRangeYear}-${String(reportRangeMonth+1).padStart(2,'0')}`;
+    return { from: mk, to: mk };
+  }
+  if (reportRangeMode === 'year') {
+    return { from: `${reportRangeYear}-01`, to: `${reportRangeYear}-12` };
+  }
+  // custom
+  const from = document.getElementById('r-from').value || '2000-01';
+  const to   = document.getElementById('r-to').value   || '2099-12';
+  return { from, to };
+}
+
+// ===== AUTO SYNC ON STARTUP =====
+async function autoSyncOnLoad() {
+  const {key,bin} = getJbCfg();
+  const npUrl = getNpCfg();
+  if (!key && !bin && !npUrl) return; // no cloud configured
+
+  // Show loading indicator on splash
+  const badge = document.getElementById('cloud-badge-wrap');
+  badge.innerHTML = `<div class="cloud-badge" style="background:#dbeafe;color:#2563eb">⏳ מסנכרן מהענן...</div>`;
+
+  try {
+    if (key && bin) {
+      // JSONBin
+      const r = await fetch(`https://api.jsonbin.io/v3/b/${bin}/latest`, { headers: {'X-Master-Key': key} });
+      if (r.ok) {
+        const d = await r.json();
+        if (d.record && d.record.in) {
+          db = d.record;
+          save();
+        }
+      }
+    } else if (npUrl) {
+      // npoint
+      const r = await fetch(npUrl);
+      if (r.ok) {
+        const d = await r.json();
+        if (d && d.in) { db = d; save(); }
+      }
+    }
+  } catch(e) { /* fail silently — use local data */ }
+
+  updateCloudBadge();
+}
+
 // Init
 const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
 updateCloudBadge();
+autoSyncOnLoad();
 </script>
 </body>
 </html>
