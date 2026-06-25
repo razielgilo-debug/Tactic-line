@@ -155,6 +155,32 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 .range-quick-btn { flex:1; padding:9px 6px; border-radius:10px; border:2px solid var(--border); background:var(--surface); font-family:'Heebo',sans-serif; font-size:13px; font-weight:800; cursor:pointer; transition:all .15s; color:var(--text-muted); }
 .range-quick-btn.active { background:#1e1b4b; color:#fff; border-color:#1e1b4b; }
 
+/* ===== TYPE SELECTOR ===== */
+.type-selector { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.type-option {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 14px; border-radius:11px;
+  border:2px solid var(--border); background:var(--surface2);
+  cursor:pointer; transition:all .15s; user-select:none;
+}
+.type-option:active { transform:scale(0.98); }
+.type-option.selected { border-color:var(--accent); background:var(--accent-light); }
+.type-option-label { font-size:15px; font-weight:700; color:var(--text); }
+.type-checkbox {
+  width:22px; height:22px; border-radius:6px;
+  border:2.5px solid var(--border); background:var(--surface);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all .15s;
+}
+.type-option.selected .type-checkbox {
+  background:var(--accent); border-color:var(--accent);
+}
+.type-option.selected .type-checkbox::after { content:'✓'; color:#fff; font-size:13px; font-weight:900; }
+.type-tag {
+  display:inline-block; font-size:11px; font-weight:800;
+  padding:2px 8px; border-radius:6px; margin-top:3px;
+}
+
 /* ===== CLOUD ===== */
 #cloud-screen { display: none; flex-direction: column; min-height: 100vh; }
 .cloud-content { flex: 1; padding: 18px; padding-bottom: 40px; overflow-y: auto; }
@@ -215,6 +241,23 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
   <div class="content">
     <div id="form-inout" class="form-card">
       <h3 id="form-title">📥 הוספת מערכת חדשה</h3>
+      <div class="form-group">
+        <label>סוג מערכת</label>
+        <div class="type-selector" id="type-selector-inout">
+          <div class="type-option" onclick="selectType('inout','פופפ')" id="type-inout-פופפ">
+            <div class="type-option-label">פופפ</div>
+            <div class="type-checkbox"></div>
+          </div>
+          <div class="type-option" onclick="selectType('inout','מיניפופ')" id="type-inout-מיניפופ">
+            <div class="type-option-label">מיניפופ</div>
+            <div class="type-checkbox"></div>
+          </div>
+          <div class="type-option" onclick="selectType('inout','ידית')" id="type-inout-ידית">
+            <div class="type-option-label">ידית</div>
+            <div class="type-checkbox"></div>
+          </div>
+        </div>
+      </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="sys-name" placeholder="הכנס שם מערכת..." autocomplete="off"></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="sys-date"></div>
       <div id="complaint-group" class="form-group" style="display:none"><label>תלונה עיקרית</label><textarea id="sys-complaint" placeholder="תאר את התלונה העיקרית של המערכת..."></textarea></div>
@@ -222,6 +265,23 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
     </div>
     <div id="form-fault" class="form-card" style="display:none">
       <h3>⚠️ רישום תקלה חדשה</h3>
+      <div class="form-group">
+        <label>סוג מערכת</label>
+        <div class="type-selector" id="type-selector-fault">
+          <div class="type-option" onclick="selectType('fault','פופפ')" id="type-fault-פופפ">
+            <div class="type-option-label">פופפ</div>
+            <div class="type-checkbox"></div>
+          </div>
+          <div class="type-option" onclick="selectType('fault','מיניפופ')" id="type-fault-מיניפופ">
+            <div class="type-option-label">מיניפופ</div>
+            <div class="type-checkbox"></div>
+          </div>
+          <div class="type-option" onclick="selectType('fault','ידית')" id="type-fault-ידית">
+            <div class="type-option-label">ידית</div>
+            <div class="type-checkbox"></div>
+          </div>
+        </div>
+      </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="f-sys" placeholder="איזו מערכת?" autocomplete="off"></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="f-date"></div>
       <div class="form-group"><label>תיאור התקלה</label><textarea id="f-fault" placeholder="מה התקלה?"></textarea></div>
@@ -419,6 +479,14 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 
     <!-- Entry fields (in/out) -->
     <div id="modal-entry-fields">
+      <div class="form-group">
+        <label>סוג מערכת</label>
+        <div class="type-selector" id="type-selector-modal-entry">
+          <div class="type-option" onclick="selectType('modal-entry','פופפ')" id="type-modal-entry-פופפ"><div class="type-option-label">פופפ</div><div class="type-checkbox"></div></div>
+          <div class="type-option" onclick="selectType('modal-entry','מיניפופ')" id="type-modal-entry-מיניפופ"><div class="type-option-label">מיניפופ</div><div class="type-checkbox"></div></div>
+          <div class="type-option" onclick="selectType('modal-entry','ידית')" id="type-modal-entry-ידית"><div class="type-option-label">ידית</div><div class="type-checkbox"></div></div>
+        </div>
+      </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="modal-name" class="cloud-input" placeholder="שם מערכת..."></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="modal-date" class="cloud-input"></div>
       <div id="modal-complaint-wrap" class="form-group"><label>תלונה עיקרית</label><textarea id="modal-complaint" class="cloud-input" style="min-height:68px;resize:vertical" placeholder="תלונה עיקרית..."></textarea></div>
@@ -426,6 +494,14 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 
     <!-- Fault fields -->
     <div id="modal-fault-fields" style="display:none">
+      <div class="form-group">
+        <label>סוג מערכת</label>
+        <div class="type-selector" id="type-selector-modal-fault">
+          <div class="type-option" onclick="selectType('modal-fault','פופפ')" id="type-modal-fault-פופפ"><div class="type-option-label">פופפ</div><div class="type-checkbox"></div></div>
+          <div class="type-option" onclick="selectType('modal-fault','מיניפופ')" id="type-modal-fault-מיניפופ"><div class="type-option-label">מיניפופ</div><div class="type-checkbox"></div></div>
+          <div class="type-option" onclick="selectType('modal-fault','ידית')" id="type-modal-fault-ידית"><div class="type-option-label">ידית</div><div class="type-checkbox"></div></div>
+        </div>
+      </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="modal-f-sys" class="cloud-input" placeholder="שם מערכת..."></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="modal-f-date" class="cloud-input"></div>
       <div class="form-group"><label>תיאור התקלה</label><textarea id="modal-f-fault" class="cloud-input" style="min-height:68px;resize:vertical"></textarea></div>
@@ -640,23 +716,70 @@ function updateMonthLabel() {
   document.getElementById('header-sub').textContent=lbl;
 }
 
+// ===== TYPE SELECTOR =====
+let selectedType = { inout: '', fault: '' };
+
+function selectType(form, val) {
+  selectedType[form] = val;
+  ['פופפ','מיניפופ','ידית'].forEach(t => {
+    const el = document.getElementById(`type-${form}-${t}`);
+    if (el) el.classList.toggle('selected', t === val);
+  });
+  // set accent color per tab for selected highlight
+  const accent = form==='fault' ? 'var(--accent-fault)' : (currentTab==='in' ? 'var(--accent-in)' : 'var(--accent-out)');
+  document.querySelectorAll(`#type-selector-${form} .type-option.selected`).forEach(el => {
+    el.style.borderColor = accent;
+    el.style.background = form==='fault' ? '#fef3c7' : (currentTab==='in' ? '#dbeafe' : '#d1fae5');
+  });
+}
+
+function getSelectedType(form) { return selectedType[form] || ''; }
+function resetType(form) {
+  selectedType[form] = '';
+  ['פופפ','מיניפופ','ידית'].forEach(t => {
+    const el = document.getElementById(`type-${form}-${t}`);
+    if (el) { el.classList.remove('selected'); el.style.borderColor=''; el.style.background=''; }
+  });
+}
+
+// ===== AUTO CLOUD PUSH =====
+async function autoPushCloud() {
+  const {key,bin} = getJbCfg();
+  const npUrl = getNpCfg();
+  if (!key && !bin && !npUrl) return;
+  try {
+    if (key && bin) {
+      await fetch(`https://api.jsonbin.io/v3/b/${bin}`, {
+        method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key':key},
+        body: JSON.stringify(db)
+      });
+    } else if (npUrl) {
+      await fetch(npUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(db)});
+    }
+  } catch(e) { /* silent fail */ }
+}
+
 // ===== ENTRIES =====
 function addEntry() {
   const name=document.getElementById('sys-name').value.trim();
   const date=document.getElementById('sys-date').value;
   const complaint=currentTab==='in'?document.getElementById('sys-complaint').value.trim():'';
+  const type=getSelectedType('inout');
   if(!name){alert('אנא הכנס שם מערכת');return;}
   if(!date){alert('אנא בחר תאריך');return;}
   const e={id:Date.now(),name,date};
   if(complaint)e.complaint=complaint;
+  if(type)e.sysType=type;
   db[currentTab].push(e); save();
+  autoPushCloud();
   document.getElementById('sys-name').value='';
   document.getElementById('sys-date').value=todayStr();
   if(currentTab==='in')document.getElementById('sys-complaint').value='';
+  resetType('inout');
   renderList();
 }
 
-function deleteEntry(tab,id){if(!confirm('למחוק רשומה זו?'))return;db[tab]=db[tab].filter(e=>e.id!==id);save();renderList();}
+function deleteEntry(tab,id){if(!confirm('למחוק רשומה זו?'))return;db[tab]=db[tab].filter(e=>e.id!==id);save();autoPushCloud();renderList();}
 
 function addFault() {
   const sys=document.getElementById('f-sys').value.trim();
@@ -665,15 +788,18 @@ function addFault() {
   const cause=document.getElementById('f-cause').value.trim();
   const solution=document.getElementById('f-solution').value.trim();
   const notes=document.getElementById('f-notes').value.trim();
+  const type=getSelectedType('fault');
   if(!sys||!fault){alert('אנא הכנס לפחות שם מערכת ותיאור תקלה');return;}
-  db.faults.push({id:Date.now(),sys,date,fault,cause,solution,notes});
+  db.faults.push({id:Date.now(),sys,date,fault,cause,solution,notes,sysType:type});
   save();
+  autoPushCloud();
   ['f-sys','f-fault','f-cause','f-solution','f-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-date').value=todayStr();
+  resetType('fault');
   renderList();
 }
 
-function deleteFault(id){if(!confirm('למחוק תקלה זו?'))return;db.faults=db.faults.filter(e=>e.id!==id);save();renderList();}
+function deleteFault(id){if(!confirm('למחוק תקלה זו?'))return;db.faults=db.faults.filter(e=>e.id!==id);save();autoPushCloud();renderList();}
 
 function renderList() {
   const mk=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
@@ -685,7 +811,7 @@ function renderList() {
     items.forEach(f=>{
       const el=document.createElement('div'); el.className='fault-item';
       el.innerHTML=`
-        <div class="fault-header"><div><div class="fault-system">🔧 ${f.sys}</div><div class="fault-date">📅 ${formatDate(f.date)}</div></div><div class="item-actions"><button class="edit-btn" onclick="openEditFault(${f.id})">✏️</button><button class="delete-btn" onclick="deleteFault(${f.id})">🗑</button></div></div>
+        <div class="fault-header"><div><div class="fault-system">🔧 ${f.sys}${f.sysType?` <span class="type-tag" style="background:#fef3c7;color:#92400e">${f.sysType}</span>`:''}</div><div class="fault-date">📅 ${formatDate(f.date)}</div></div><div class="item-actions"><button class="edit-btn" onclick="openEditFault(${f.id})">✏️</button><button class="delete-btn" onclick="deleteFault(${f.id})">🗑</button></div></div>
         ${f.fault?`<div class="fault-row"><div class="fault-row-label">תיאור התקלה</div><div class="fault-row-val">${f.fault}</div></div>`:''}
         ${f.cause?`<div class="fault-row"><div class="fault-row-label">גורם התקלה</div><div class="fault-row-val">${f.cause}</div></div>`:''}
         ${f.solution?`<div class="fault-row"><div class="fault-row-label">פתרון</div><div class="fault-row-val">${f.solution}</div></div>`:''}
@@ -706,6 +832,7 @@ function renderList() {
       <div style="width:36px;height:36px;border-radius:10px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:17px;margin-left:12px;flex-shrink:0">${currentTab==='in'?'📥':'📤'}</div>
       <div class="entry-main">
         <div class="entry-name">${e.name}</div>
+        ${e.sysType?`<span class="type-tag" style="background:${currentTab==='in'?'#dbeafe':'#d1fae5'};color:${currentTab==='in'?'#1d4ed8':'#065f46'}">${e.sysType}</span>`:''}
         <div class="entry-date">📅 ${formatDate(e.date)}</div>
         ${e.complaint?`<div class="entry-complaint">💬 ${e.complaint}</div>`:''}
       </div>
@@ -795,6 +922,8 @@ function openEditEntry(tab, id) {
   document.getElementById('modal-name').value = entry.name || '';
   document.getElementById('modal-date').value = entry.date || '';
   document.getElementById('modal-complaint').value = entry.complaint || '';
+  resetType('modal-entry');
+  if (entry.sysType) selectType('modal-entry', entry.sysType);
   const btn = document.getElementById('modal-save-btn');
   btn.style.background = tab === 'in' ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'linear-gradient(135deg,#059669,#047857)';
   document.getElementById('edit-modal').classList.remove('hidden');
@@ -814,6 +943,8 @@ function openEditFault(id) {
   document.getElementById('modal-f-cause').value = f.cause || '';
   document.getElementById('modal-f-solution').value = f.solution || '';
   document.getElementById('modal-f-notes').value = f.notes || '';
+  resetType('modal-fault');
+  if (f.sysType) selectType('modal-fault', f.sysType);
   document.getElementById('modal-save-btn').style.background = 'linear-gradient(135deg,#d97706,#b45309)';
   document.getElementById('edit-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -840,14 +971,17 @@ function saveEdit() {
     f.cause    = document.getElementById('modal-f-cause').value.trim();
     f.solution = document.getElementById('modal-f-solution').value.trim();
     f.notes    = document.getElementById('modal-f-notes').value.trim();
+    f.sysType  = getSelectedType('modal-fault');
   } else {
     const entry = db[editContext.type].find(e => e.id === editContext.id);
     if (!entry) return;
-    entry.name = document.getElementById('modal-name').value.trim();
-    entry.date = document.getElementById('modal-date').value;
+    entry.name    = document.getElementById('modal-name').value.trim();
+    entry.date    = document.getElementById('modal-date').value;
+    entry.sysType = getSelectedType('modal-entry');
     if (editContext.type === 'in') entry.complaint = document.getElementById('modal-complaint').value.trim();
   }
   save();
+  autoPushCloud();
   closeModal();
   renderList();
 }
