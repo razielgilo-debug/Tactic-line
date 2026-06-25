@@ -242,21 +242,11 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
     <div id="form-inout" class="form-card">
       <h3 id="form-title">📥 הוספת מערכת חדשה</h3>
       <div class="form-group">
-        <label>סוג מערכת</label>
-        <div class="type-selector" id="type-selector-inout">
-          <div class="type-option" onclick="selectType('inout','פופפ')" id="type-inout-פופפ">
-            <div class="type-option-label">פופפ</div>
-            <div class="type-checkbox"></div>
-          </div>
-          <div class="type-option" onclick="selectType('inout','מיניפופ')" id="type-inout-מיניפופ">
-            <div class="type-option-label">מיניפופ</div>
-            <div class="type-checkbox"></div>
-          </div>
-          <div class="type-option" onclick="selectType('inout','ידית')" id="type-inout-ידית">
-            <div class="type-option-label">ידית</div>
-            <div class="type-checkbox"></div>
-          </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label style="margin-bottom:0">סוג מערכת</label>
+          <button onclick="openCatManager()" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;color:var(--text-muted)">⚙️ ניהול קטגוריות</button>
         </div>
+        <div class="type-selector" id="type-selector-inout"></div>
       </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="sys-name" placeholder="הכנס שם מערכת..." autocomplete="off"></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="sys-date"></div>
@@ -267,20 +257,7 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
       <h3>⚠️ רישום תקלה חדשה</h3>
       <div class="form-group">
         <label>סוג מערכת</label>
-        <div class="type-selector" id="type-selector-fault">
-          <div class="type-option" onclick="selectType('fault','פופפ')" id="type-fault-פופפ">
-            <div class="type-option-label">פופפ</div>
-            <div class="type-checkbox"></div>
-          </div>
-          <div class="type-option" onclick="selectType('fault','מיניפופ')" id="type-fault-מיניפופ">
-            <div class="type-option-label">מיניפופ</div>
-            <div class="type-checkbox"></div>
-          </div>
-          <div class="type-option" onclick="selectType('fault','ידית')" id="type-fault-ידית">
-            <div class="type-option-label">ידית</div>
-            <div class="type-checkbox"></div>
-          </div>
-        </div>
+        <div class="type-selector" id="type-selector-fault"></div>
       </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="f-sys" placeholder="איזו מערכת?" autocomplete="off"></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="f-date"></div>
@@ -471,6 +448,22 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
   </div>
 </div>
 
+<!-- ===== CATEGORY MANAGER MODAL ===== -->
+<div class="modal-overlay hidden" id="cat-modal" onclick="if(event.target===this)closeCatManager()">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ ניהול קטגוריות</div>
+    <div id="cat-list"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <input type="text" id="cat-new-input" class="cloud-input" placeholder="שם קטגוריה חדשה..." style="flex:1" onkeydown="if(event.key==='Enter')addCat()">
+      <button onclick="addCat()" style="background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:Heebo;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap">+ הוסף</button>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="modal-cancel-btn" style="flex:1" onclick="closeCatManager()">סגור</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== EDIT MODAL ===== -->
 <div class="modal-overlay hidden" id="edit-modal" onclick="closeModalOnBg(event)">
   <div class="modal-box">
@@ -481,11 +474,7 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
     <div id="modal-entry-fields">
       <div class="form-group">
         <label>סוג מערכת</label>
-        <div class="type-selector" id="type-selector-modal-entry">
-          <div class="type-option" onclick="selectType('modal-entry','פופפ')" id="type-modal-entry-פופפ"><div class="type-option-label">פופפ</div><div class="type-checkbox"></div></div>
-          <div class="type-option" onclick="selectType('modal-entry','מיניפופ')" id="type-modal-entry-מיניפופ"><div class="type-option-label">מיניפופ</div><div class="type-checkbox"></div></div>
-          <div class="type-option" onclick="selectType('modal-entry','ידית')" id="type-modal-entry-ידית"><div class="type-option-label">ידית</div><div class="type-checkbox"></div></div>
-        </div>
+        <div class="type-selector" id="type-selector-modal-entry"></div>
       </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="modal-name" class="cloud-input" placeholder="שם מערכת..."></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="modal-date" class="cloud-input"></div>
@@ -496,11 +485,7 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
     <div id="modal-fault-fields" style="display:none">
       <div class="form-group">
         <label>סוג מערכת</label>
-        <div class="type-selector" id="type-selector-modal-fault">
-          <div class="type-option" onclick="selectType('modal-fault','פופפ')" id="type-modal-fault-פופפ"><div class="type-option-label">פופפ</div><div class="type-checkbox"></div></div>
-          <div class="type-option" onclick="selectType('modal-fault','מיניפופ')" id="type-modal-fault-מיניפופ"><div class="type-option-label">מיניפופ</div><div class="type-checkbox"></div></div>
-          <div class="type-option" onclick="selectType('modal-fault','ידית')" id="type-modal-fault-ידית"><div class="type-option-label">ידית</div><div class="type-checkbox"></div></div>
-        </div>
+        <div class="type-selector" id="type-selector-modal-fault"></div>
       </div>
       <div class="form-group"><label>שם המערכת</label><input type="text" id="modal-f-sys" class="cloud-input" placeholder="שם מערכת..."></div>
       <div class="form-group"><label>תאריך</label><input type="date" id="modal-f-date" class="cloud-input"></div>
@@ -716,30 +701,105 @@ function updateMonthLabel() {
   document.getElementById('header-sub').textContent=lbl;
 }
 
+// ===== CATEGORIES =====
+const DEFAULT_CATS = ['פופ','מיניפופ','ידית'];
+function loadCats() {
+  try { return JSON.parse(localStorage.getItem('sys_categories')) || [...DEFAULT_CATS]; }
+  catch(e) { return [...DEFAULT_CATS]; }
+}
+function saveCats(cats) { localStorage.setItem('sys_categories', JSON.stringify(cats)); }
+let sysCategories = loadCats();
+
 // ===== TYPE SELECTOR =====
-let selectedType = { inout: '', fault: '' };
+let selectedType = { inout: '', fault: '', 'modal-entry': '', 'modal-fault': '' };
+
+function renderTypeSelector(form) {
+  const containers = document.querySelectorAll(`#type-selector-${form}`);
+  containers.forEach(container => {
+    container.innerHTML = '';
+    sysCategories.forEach(cat => {
+      const div = document.createElement('div');
+      div.className = 'type-option' + (selectedType[form]===cat?' selected':'');
+      div.id = `type-${form}-${cat}`;
+      div.onclick = () => selectType(form, cat);
+      div.innerHTML = `<div class="type-option-label">${cat}</div><div class="type-checkbox"></div>`;
+      if (selectedType[form]===cat) applyTypeColor(div, form);
+      container.appendChild(div);
+    });
+  });
+}
+
+function applyTypeColor(el, form) {
+  const isFault = form==='fault'||form==='modal-fault';
+  el.style.borderColor = isFault ? 'var(--accent-fault)' : (currentTab==='in'||form==='modal-entry' ? 'var(--accent-in)' : 'var(--accent-out)');
+  el.style.background  = isFault ? '#fef3c7' : (currentTab==='in'||form==='modal-entry' ? '#dbeafe' : '#d1fae5');
+}
 
 function selectType(form, val) {
   selectedType[form] = val;
-  ['פופפ','מיניפופ','ידית'].forEach(t => {
-    const el = document.getElementById(`type-${form}-${t}`);
-    if (el) el.classList.toggle('selected', t === val);
-  });
-  // set accent color per tab for selected highlight
-  const accent = form==='fault' ? 'var(--accent-fault)' : (currentTab==='in' ? 'var(--accent-in)' : 'var(--accent-out)');
-  document.querySelectorAll(`#type-selector-${form} .type-option.selected`).forEach(el => {
-    el.style.borderColor = accent;
-    el.style.background = form==='fault' ? '#fef3c7' : (currentTab==='in' ? '#dbeafe' : '#d1fae5');
+  document.querySelectorAll(`#type-selector-${form} .type-option`).forEach(el => {
+    const isSelected = el.id === `type-${form}-${val}`;
+    el.classList.toggle('selected', isSelected);
+    if (isSelected) applyTypeColor(el, form);
+    else { el.style.borderColor=''; el.style.background=''; }
   });
 }
 
 function getSelectedType(form) { return selectedType[form] || ''; }
+
 function resetType(form) {
   selectedType[form] = '';
-  ['פופפ','מיניפופ','ידית'].forEach(t => {
-    const el = document.getElementById(`type-${form}-${t}`);
-    if (el) { el.classList.remove('selected'); el.style.borderColor=''; el.style.background=''; }
+  document.querySelectorAll(`#type-selector-${form} .type-option`).forEach(el => {
+    el.classList.remove('selected'); el.style.borderColor=''; el.style.background='';
   });
+}
+
+function renderAllTypeSelectors() {
+  ['inout','fault','modal-entry','modal-fault'].forEach(f => renderTypeSelector(f));
+}
+
+// ===== CATEGORY MANAGER =====
+function openCatManager() {
+  document.getElementById('cat-modal').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+  renderCatManager();
+}
+function closeCatManager() {
+  document.getElementById('cat-modal').classList.add('hidden');
+  document.body.style.overflow='';
+}
+function renderCatManager() {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '';
+  sysCategories.forEach((cat, i) => {
+    const div = document.createElement('div');
+    div.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px';
+    div.innerHTML=`
+      <span style="font-size:15px;font-weight:700">${cat}</span>
+      <button onclick="deleteCat(${i})" style="background:#fee2e2;border:none;color:#dc2626;border-radius:7px;padding:5px 11px;font-size:13px;font-weight:800;cursor:pointer">הסר ✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+function addCat() {
+  const inp = document.getElementById('cat-new-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  if (sysCategories.includes(val)) { inp.value=''; return; }
+  sysCategories.push(val);
+  saveCats(sysCategories);
+  inp.value='';
+  renderCatManager();
+  renderAllTypeSelectors();
+}
+function deleteCat(i) {
+  const cat = sysCategories[i];
+  sysCategories.splice(i,1);
+  saveCats(sysCategories);
+  // clear selection if deleted cat was selected
+  Object.keys(selectedType).forEach(f => { if(selectedType[f]===cat) selectedType[f]=''; });
+  renderCatManager();
+  renderAllTypeSelectors();
 }
 
 // ===== AUTO CLOUD PUSH =====
@@ -1079,6 +1139,7 @@ async function autoSyncOnLoad() {
 // Init
 const now=new Date(); currentYear=now.getFullYear(); currentMonth=now.getMonth();
 updateCloudBadge();
+renderAllTypeSelectors();
 autoSyncOnLoad();
 </script>
 </body>
